@@ -1,0 +1,207 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN"
+	"http://www.w3.org/TR/REC-html40/strict.dtd">
+<html>
+<head>
+<title>DataValidator documentation</title>
+<style type="text/css">
+html, body {
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	font: 15px/21px Tahoma, Arial, sans-serif
+}
+
+h1 {
+	font-size: 21px
+}
+
+h2 {
+	font-size: 18px
+}
+
+.main-wrapper {
+	width: 730px;
+	margin: 0px auto;
+	padding: 10px
+}
+
+pre {
+	border: dotted 1px #aaa;
+	background-color: #D8E1FF;
+	padding: 10px;
+	margin: 0px;
+    font-size: 13px
+}
+</style>
+</head>
+<body>
+<div class="main-wrapper">
+<h1 style="text-align: center">DataValidator class documentation</h1>
+
+<h2>Overview</h2>
+<p><strong>DataValidator</strong> is a PHP class which performs data validation based on rules</p></p>
+
+<h2>Features</h2>
+<ul>
+    <li>Supports following validation orders: sequence (fields validated sequentially),
+    all-at-once and both of them (using dependencies model)</li>
+    <li>Can embed different user-defined validation rules libraries (default built-in library is provided)</li>
+</ul>
+
+<h2>Data format</h2>
+<p>DataValidator accepts data as the array of keys and their values:</p>
+
+<pre>
+$data = array(
+    'email' => '',
+    'fname' => '',
+    'lname' => '',
+    'pwd' => '',
+    'confirm_pwd' => '',
+    'sex' => ''
+);
+</pre>
+
+<h2>Ruleset format</h2>
+
+<p>DataValidator uses the following ruleset format: array of conditions as keys and rules as values</p>
+
+<pre>
+[pseudocode]
+
+array(
+    condition => rule,
+    condition1 => rule1,
+    ...
+);
+</pre>
+
+<p>where condition consists of data array key and validation function name separated by dot:</p>
+
+<pre>
+'key.[(][library name][:][!]validation function name[)]'
+(characters enclosed in square brackets are optional)
+
+Examples:
+
+username.isEmpty - call isEmpty function on key 'username' from data array
+
+email.!isEmail - call isEmpty function on email and revert the result
+                (meaning if field is not an email)
+
+email.(User:!isExist) - call isExist method of User class on email
+                        and revert the result
+</pre>
+
+<p>rule can be defined as string representing error message:</p>
+
+<pre>
+$ruleset => array(
+    'email.isEmpty' => 'Please enter email',
+    'email.!isEmail' => 'Please enter correct email'
+);
+</pre>
+
+<p>or as an array for advanced usage:</p>
+
+<pre>
+$ruleset => array(
+    'password.isStrlen' => array(
+        'bindValues' => array(
+            'value1', 'value2'
+        ),
+        'bindParams' => array(
+            'type' => 'lte',
+            'len' => 7
+        ),
+        'msg' => 'Password is too short',
+        'dpnd' => 'email'
+    )
+);
+</pre>
+
+<p><strong>bindValues</strong> is an array constisting of strings
+named likewise the corresponding data keys
+and indicates that values of those keys should be passed as arguments to validation function
+(binded values keys should exist in the data array).
+</p>
+
+<p>So in the above example isStrlen() function will receive values of corresponding data keys named 'value1' and 'value2'
+along with the value of 'password' key.</p>
+
+<p><strong>bindParams</strong> is an array of values, which can be plain or associative array,
+indicating that its values should be passed as arguments to validation function.</p>
+
+<p>So in the above example isStrlen() function will receive arguments 'lte' and 7.</p>
+
+<p>Summarizing the above example, isStrlen() function should have the following
+signature preserving the order of arguments as listed:</p>
+
+<pre>
+function isStrlen($value, $value1, $value2, $type, $len)
+
+(where $value in the current example is the value of 'password' data key)
+</pre>
+
+<p>Error message should be defined using <strong>msg</strong> key.</p>
+
+<p><strong>dpnd</strong> key is a string named the same way as the corresponding data key and
+means that the current rule execution takes place only after dependent field is passed validation.
+It is possible to chain dependencies. For example, the following ruleset: </p>
+
+<pre>
+$ruleset = array(
+    'field1.isEmpty' => 'Please enter field1',
+    'field1.isEmail' => 'Please enter correct email',
+    'field2.isEmpty' => array(
+        'msg' => 'Please enter field2',
+        'dpnd' => 'field1'
+    ),
+    'field3.isEmpty' => array(
+        'msg' => 'Please enter field3',
+        'dpnd' => 'field2'
+    )
+);
+</pre>
+
+<p>means that field2.isEmpty condition will be executed after field1 passes all defined validations
+(isEmpty and isEmail), and field3.isEmpty condition will be executed after field2 passes all defined validations.
+Level of dependecies nesting in not limited (though it's advised to use reasonable level of nesting).
+</p>
+
+<h2>Custom validation libraries</h2>
+
+<p>DataValidator supports embedding of user-defined custom validation libraries.
+Validation library should be made as a class with validation functions defined as methods (either static or not).
+Validation method should accept arguments defined in the rule and should return integer <strong>1</strong> or <strong>0</strong>
+depending on validation result.</p>
+
+<p>Example of validation method:</p>
+
+<pre>
+public static function isEmpty($value)
+{
+    return ($value == '') ? 1 : 0;
+}
+</pre>
+
+<p>Embedding of validation libraries should be done using <strong>setLibs</strong> method of DataValidator:</p>
+
+<pre>
+$validator = new DataValidator();
+
+$validator->setLibs(array(
+    'SomeStaticLib',  // pass library as a string if it contains only static method
+    new DynamicLib()  // pass library as an object
+));
+</pre>
+
+<p>Validation result can be checked using <strong>getErrors</strong> method, which will return an
+array of data keys as keys and error messages as values if validation failed,
+or an empty array if validation is passed</p>
+
+<p>For detailed information please check the examples provided with the package</p>
+
+</div>
+</body>
+</html>

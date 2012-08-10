@@ -1,0 +1,5 @@
+PHP library for data validation based on rules
+Supports following validation orders: sequence, all-at-once and mix of them (using dependencies model)
+Can embed different user-defined validation rules libraries (default built-in library is provided)
+
+Copyright (C) 2012  Mark Rolich

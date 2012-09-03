@@ -185,16 +185,10 @@ public static function isEmpty($value)
 }
 </pre>
 
-<p>Embedding of validation libraries should be done using <strong>setLibs</strong> method of DataValidator:</p>
-
-<pre>
-$validator = new DataValidator();
-
-$validator->setLibs(array(
-    'SomeStaticLib',  // pass library as a string if it contains only static method
-    new DynamicLib()  // pass library as an object
-));
-</pre>
+<p>
+Validation libraries defined in ruleset will embed automatically (an object of the library will be created for non-static methods and string for static ones).
+Validation library needs to be included before validation.
+</p>
 
 <p>Validation result can be checked using <strong>getErrors</strong> method, which will return an
 array of data keys as keys and error messages as values if validation failed,

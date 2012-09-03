@@ -35,7 +35,7 @@ class DataValidator
     private $queue;
 
     /**
-    * @var mixed - array of embedded libraries
+    * @var mixed - array of user-defined embedded validation libraries
     */
     private $libs;
 
@@ -75,38 +75,31 @@ class DataValidator
     }
 
     /**
-    * Libraries setter
-    *
-    * @param $libs mixed - array of embedded validation rules libraries
-    */
-    public function setLibs($libs)
-    {
-        $this->libs = $libs;
-    }
-
-    /**
     * Parses condition call part,
     * extracts and returns library class name
-    * and method name if indicated
+    * as a string if method is static
+    * or initialized object otherwise,
+    * and method name
     *
     * @param $call string - validation rule condition call part
-    * @return mixed - array of library class name and method name
+    * @return mixed - array of library class name (or object) and method name
     */
     private function locateLib($call)
     {
         if (strpos($call, '(') === false) {
             $lib = self::DEFAULT_LIB;
         } else {
-            list($className, $call) = explode(':', trim($call, '()'));
+            list($libName, $call) = explode(':', trim($call, '()'));
 
-            foreach ($this->libs as $libName) {
-                if (is_object($libName)
-                    && get_class($libName) == $className
-                    || $libName == $className
-                ) {
-                    $lib = $libName;
-                }
+            if (!isset($this->libs[$libName])) {
+                $method = new ReflectionMethod($libName . '::' . trim($call, '!'));
+
+                $this->libs[$libName] = $method->isStatic()
+                                        ? $libName
+                                        : new $libName;
             }
+
+            $lib = $this->libs[$libName];
         }
 
         return array($lib, $call);

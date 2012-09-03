@@ -93,13 +93,22 @@ class DataValidatorLib
     /**
     * Check if the value is contained in the provided values range
     *
-    * @param $value mixed - value to check
+    * @param $value mixed - value (or array of values) to check
     * @param $range mixed - array of values to match
     * @return int
     */
     public static function inRange($value, $range)
     {
-        return (in_array($value, $range)) ? 1 : 0;
+        $result = 0;
+
+        if (is_array($value)) {
+            $diff = array_diff($value, $range);
+            $result = empty($diff) ? 1 : 0;
+        } else {
+            $result = in_array($value, $range) ? 1 : 0;
+        }
+
+        return $result;
     }
 }
 ?>

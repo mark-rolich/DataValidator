@@ -11,7 +11,8 @@ $data = array(
     'lname' => '',
     'pwd' => '',
     'confirm_pwd' => '',
-    'sex' => ''
+    'sex' => '',
+    'options' => array()
 );
 
 $ruleset = array(
@@ -51,12 +52,17 @@ $ruleset = array(
             'range' => array('Male', 'Female')
         ),
         'msg' => 'Please select correct sex'
+    ),
+    'options.!inRange' => array(
+        'bindParams' => array(
+            'range' => array(0,1,2)
+        ),
+        'msg' => 'Please select correct option'
     )
 );
 
 $validator = new DataValidator();
 
-$validator->setLibs(array(new User(), 'Email'));
 $validator->setData($data);
 $validator->setRuleset($ruleset);
 $validator->setOrder(1);

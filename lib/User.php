@@ -10,9 +10,11 @@ class User
     * Stub function to demonstrate library embedding
     *
     */
+    private $dbh = 1;
+
     public function isExist($email)
     {
-        return ($email == 'aaa@aaa.aaa') ? 1 : 0;
+        return ($email == 'www@www.www' && $this->dbh == 1) ? 1 : 0;
     }
 }
 ?>
